@@ -1,0 +1,215 @@
+import os
+import cv2
+import numpy as np
+import matplotlib.pyplot as plt
+from sklearn.cluster import KMeans
+from skimage import color
+
+def img_kmeans(imgFilename,savedImgPath,savedImgFilename,k):
+    #Write your k-means function here
+    #read in the image
+    img_color = cv2.imread(imgFilename)
+    img_RGB = cv2.cvtColor(img_color, cv2.COLOR_BGR2RGB) # Opencv uses BGR
+    #print(img_RGB.shape) #(875, 584, 3) is the size of picture
+    
+    #split img_RGB into 3 RGB channels
+    red_channel = img_RGB[:, :, 0]
+    green_channel = img_RGB[:,:,1]
+    blue_channel = img_RGB[:,:,2]
+    plt.figure(1)
+    plt.subplot(1,4,1)
+    plt.imshow(red_channel)  #(875, 584)
+    plt.figure(1)
+    plt.subplot(1,4,2)
+    plt.imshow(green_channel)  # most obvious
+    plt.figure(1)
+    plt.subplot(1,4,3)
+    plt.imshow(blue_channel)
+    plt.figure(1)
+    plt.subplot(1,4,4)
+    plt.imshow(img_color)
+    plt.show()
+    
+
+    pixel_val0 = np.float32(green_channel)  # such as compute with green channel
+    
+    # pixel_val = np.float32(img_RGB.reshape(-1, 3)) #print(pixel_val.shape) #(75300, 3)
+    # kmeans = sklearn.cluster.KMeans(n_clusters = k, max_iter = 100, random_state = 0)
+    
+    ## We make use of color information here ##
+    # print(type(img_binary[0,0]))
+    # Using cv2 kmeans
+    # define stopping criteria: stop when the iterations exceed 100, and clusters move less than  0.85
+    criteria = (cv2.TERM_CRITERIA_EPS + cv2.TERM_CRITERIA_MAX_ITER, 100, 0.85)
+    # kmeans = KMeans(random_state = 0)
+    _,labels, centers = cv2.kmeans(pixel_val0, k, None, criteria, 10, cv2.KMEANS_RANDOM_CENTERS)
+    centers = np.uint8(centers)
+    labels = labels.flatten()
+    segmented_image = centers[labels]
+    segmented_image = segmented_image.reshape(segmented_image.shape)
+    # print(segmented_image.shape)  # (875, 584)
+    plt.imshow(segmented_image)
+
+
+#######################################################################################################
+## Here I use K-means methods to get the cluster
+## But it's not a good results, because k-means make the boundaries getting blur
+savedImgPath=r"/Users/yangwenqing/Desktop/HuBMAP\ image\ analysis" #  Write your own path
+savedImgFilename="img_result.jpg"
+k = 50
+img_kmeans('IMG_2310.jpg',savedImgPath,savedImgFilename,k)
+
+#######################################################################################################
+import os
+import cv2
+import numpy as np
+import matplotlib.pyplot as plt
+from sklearn.cluster import KMeans
+from skimage import color
+def wy2374_kmeans(imgFilename,savedImgPath,savedImgFilename,k): # define the kmeans function
+    
+    img_color = cv2.imread(imgFilename) # read the image
+    img_RGB = cv2.cvtColor(img_color, cv2.COLOR_BGR2RGB) # color format in CV2 is BGR, we nooed to transfer it to RGB
+    pixel = np.float32(img_RGB.reshape((-1, 3))) #flatten and reshape the image
+    cri = (cv2.TERM_CRITERIA_EPS + cv2.TERM_CRITERIA_MAX_ITER, 100, 0.85) # set criteria of cv2.kmeans
+    _,labels, centers = cv2.kmeans(pixel, k, None, cri, 10, cv2.KMEANS_RANDOM_CENTERS)
+ 
+    centers = np.uint8(centers) 
+ #print("Number of Centers: ",centers.shape[0]) # Number of Centers: 7
+ #print(labels)
+    labels = labels.flatten()
+    print(centers)
+    
+#######################################################################################################
+## Here I list centers after k-means, we can try to get contour using centers.
+savedImgPath=r"/Users/yangwenqing/Desktop/HuBMAP\ image\ analysis" #Write your own path
+savedImgFilename="img_result.jpg"
+k = 50
+wy2374_kmeans('IMG_2310.jpg',savedImgPath,savedImgFilename,k)
+
+#######################################################################################################
+## What I do is to segment the original image into 3*3 pixel
+## Here I show the result of segment
+
+img_color = cv2.imread('IMG_2310.jpg')   # Remember to change the path of image
+# Get the dimensionality of image
+I_height = img_color.shape[0]  
+I_width = img_color.shape[1]
+#(875, 584, 3)  
+filter_height = 3
+filter_width = 3
+mmax = math.floor(I_height/filter_height)
+nmax = math.floor(I_width/filter_width)
+    
+# iteration: for k in range(int(mmax * nmax))
+    
+for m in range(int(mmax)):
+    for n in range(int(nmax)):
+        # do partition from the image and compute inner product
+        part_I = img_color[m*filter_height:(m+1)*filter_height, n*filter_width:(n+1)*filter_width]
+        plt.imshow(part_I)
+        pylab.show()
+#######################################################################################################
+ 
+## The cell shows that, after segmentation, I extract main color of every little window
+## use the main color to re-paint the little window 
+## Then we denoise for the same cluster
+## The boundaries will be shown after performing k-means in little window
+
+img_color = cv2.imread('IMG_2310.jpg')
+I_height = img_color.shape[0]
+I_width = img_color.shape[1]
+#(875, 584, 3)  
+filter_height = 3
+filter_width = 
+mmax = math.floor(I_height/filter_height)
+nmax = math.floor(I_width/filter_width)
+    
+# iteration: for k in range(int(mmax * nmax))
+box_list = [] 
+for m in range(int(mmax)):
+    for n in range(int(nmax)):
+        # do partition from the image and compute inner product
+        part_I = img_color[m*filter_height:(m+1)*filter_height, n*filter_width:(n+1)*filter_width]
+        img1 = img.reshape((3 * 3, 3))
+        ## We use k-means here
+        k = 1
+        estimator = KMeans(n_clusters=k, max_iter=4000, init='k-means++', n_init=50)
+        estimator.fit(img1)
+        # get center
+        centroids = estimator.cluster_centers_ 
+        result = []
+
+        n_channels = img1.shape[1]
+
+        for center_index in range(k):
+            result.append(np.full((3 * 3, n_channels), centroids[center_index], dtype=int))
+
+            result = np.array(result)
+            result = result.reshape((3 * k, 3, n_channels))
+            result=result.astype(np.uint8)
+            cv2.imshow('maincolor',result)
+
+            #io.imsave(r"result.jpg", result)
+        box_list.append(result)
+        
+plt.imshow(box_list)
+pylab.show()
+#image_list = [image.crop(result) for result in box_list]  
+#plt.imshow(image_list)
+
+#######################################################################################################
+###########  What I intend to improve is ############
+# The method is a little expensive and time consuming
+# Thus I need to find a way to make the process cheaper to achieve
+# convolution is a good way, gabor filter will make the boundary more clear
+# Here I rectify the gabor filter as Ma filter, I will try it after I finish my midterm:)
+'''
+def filter_Ma_1(theta):
+    # delta_x = 3 and delta_y = 1.5 in paper Ma et al
+    delta_x = 3
+    delta_y = 1.5
+    f = 1/delta_x
+    # Bounding box
+    nstds = 3  # Number of standard deviation sigma
+    ## Set x,y using three sigma rule
+    xmax = max(abs(nstds * delta_x * np.cos(theta)), abs(nstds * delta_y * np.sin(theta)))
+    xmax = np.ceil(max(1, xmax))
+    ymax = max(abs(nstds * delta_x * np.sin(theta)), abs(nstds * delta_y * np.cos(theta)))
+    ymax = np.ceil(max(1, ymax))
+    xmin = -xmax
+    ymin = -ymax
+    (y, x) = np.meshgrid(np.arange(ymin, ymax + 1), np.arange(xmin, xmax + 1))
+
+    # Modulating function M: a circularly symmetric sinusoidal function
+    M = np.cos(2 * np.pi * f * np.sqrt(x ** 2 + y ** 2))
+    fm = (1/(2 * np.pi * delta_x * delta_y)) * np.exp(-.5 * ((x / delta_x) ** 2 + (y / delta_y) ** 2)) * M
+    return fm
+'''
+# Here's the gabor filter people use most
+'''
+def Gabor(sigma, theta, Lambda, psi, gamma): # different with Gabor filter
+    """Gabor feature extraction."""
+    sigma_x = sigma
+    sigma_y = float(sigma) / gamma
+
+    # Bounding box
+    nstds = 3  # Number of standard deviation sigma
+    xmax = max(abs(nstds * sigma_x * np.cos(theta)), abs(nstds * sigma_y * np.sin(theta)))
+    xmax = np.ceil(max(1, xmax))
+    ymax = max(abs(nstds * sigma_x * np.sin(theta)), abs(nstds * sigma_y * np.cos(theta)))
+    ymax = np.ceil(max(1, ymax))
+    xmin = -xmax
+    ymin = -ymax
+    (y, x) = np.meshgrid(np.arange(ymin, ymax + 1), np.arange(xmin, xmax + 1))
+
+    # Rotation
+    # Modulating function M: an oriented sinusoidal function
+    x_theta = x * np.cos(theta) + y * np.sin(theta)
+    y_theta = -x * np.sin(theta) + y * np.cos(theta)
+    # Real part
+    gb_real = np.exp(-.5 * (x_theta ** 2 / sigma_x ** 2 + y_theta ** 2 / sigma_y ** 2)) * np.cos(2 * np.pi / Lambda * x_theta + psi)
+    # Imaginary Part
+    gb_im = np.exp(-.5 * (x_theta ** 2 / sigma_x ** 2 + y_theta ** 2 / sigma_y ** 2)) * np.sin(2 * np.pi / Lambda * x_theta + psi)
+    return gb_real, gb_im
+'''
